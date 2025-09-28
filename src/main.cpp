@@ -5,6 +5,7 @@
 #include <graph.h>
 #include <getopt.h>
 #include <randomGenerator.h>
+#include <ctime>
 
 #define EPOC 10
 //#define Debug
