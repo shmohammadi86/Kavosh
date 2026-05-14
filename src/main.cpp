@@ -5,7 +5,7 @@
 #include <graph.h>
 #include <getopt.h>
 #include <randomGenerator.h>
-
+#include <time.h>
 #define EPOC 10
 //#define Debug
 
@@ -364,7 +364,7 @@ int main(int argc, char *argv[]) {
 	subgraphCounter = 0;
 	Enumerate();
 	g->AllocateCounter();
-	printf("Total Number of Subgraphs: %d\n", subgraphCounter);	
+	printf("Total Number of Subgraphs: %lld\n", subgraphCounter);	
 	g->Extract();
 	
 	clock_t end_main_time = clock();
