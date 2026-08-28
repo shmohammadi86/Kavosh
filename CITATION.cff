@@ -1,0 +1,62 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the article below."
+title: "Kavosh: exact enumeration and statistical evaluation of network motifs"
+abstract: >-
+  Kavosh enumerates every connected sub-graph of a given size in a network,
+  classifies them into isomorphism classes using nauty, and scores each class
+  against a degree-preserving random ensemble to identify network motifs.
+type: software
+repository-code: "https://github.com/shmohammadi86/Kavosh"
+license: MIT
+authors:
+  - family-names: "Razaghi Moghadam Kashani"
+    given-names: "Zahra"
+  - family-names: "Ahrabian"
+    given-names: "Hayedeh"
+  - family-names: "Elahi"
+    given-names: "Elahe"
+  - family-names: "Nowzari-Dalini"
+    given-names: "Abbas"
+  - family-names: "Saberi Ansari"
+    given-names: "Elnaz"
+  - family-names: "Asadi"
+    given-names: "Sahar"
+  - family-names: "Mohammadi"
+    given-names: "Shahin"
+    orcid: "https://orcid.org/0000-0001-7297-6907"
+  - family-names: "Schreiber"
+    given-names: "Falk"
+  - family-names: "Masoudi-Nejad"
+    given-names: "Ali"
+keywords:
+  - network motifs
+  - subgraph enumeration
+  - graph isomorphism
+  - systems biology
+preferred-citation:
+  type: article
+  title: "Kavosh: a new algorithm for finding network motifs"
+  journal: "BMC Bioinformatics"
+  volume: 10
+  start: 318
+  year: 2009
+  doi: "10.1186/1471-2105-10-318"
+  authors:
+    - family-names: "Razaghi Moghadam Kashani"
+      given-names: "Zahra"
+    - family-names: "Ahrabian"
+      given-names: "Hayedeh"
+    - family-names: "Elahi"
+      given-names: "Elahe"
+    - family-names: "Nowzari-Dalini"
+      given-names: "Abbas"
+    - family-names: "Saberi Ansari"
+      given-names: "Elnaz"
+    - family-names: "Asadi"
+      given-names: "Sahar"
+    - family-names: "Mohammadi"
+      given-names: "Shahin"
+    - family-names: "Schreiber"
+      given-names: "Falk"
+    - family-names: "Masoudi-Nejad"
+      given-names: "Ali"

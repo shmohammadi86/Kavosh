@@ -162,7 +162,7 @@ void tree::DFS(Node * cur) {
 }
 
 value tree::destroy() {
-	register int i;
+	int i;
 	v.C = new double[get_leafnum()];
 	v.adj_str = new char * [get_leafnum()];
 	for(i = 0; i < get_leafnum(); i++)

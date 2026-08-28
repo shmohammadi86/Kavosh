@@ -1,3 +1,7 @@
+#include <ctime>
+#include <cstring>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <map>
@@ -7,6 +11,7 @@
 #include <randomGenerator.h>
 
 #define EPOC 10
+#define MAX_VERTICES 10000000
 //#define Debug
 
 using namespace std;
@@ -43,7 +48,7 @@ bool isRand;
 
 void print_usage (FILE * stream, int exit_code)
 {
-	fprintf (stream, "Usage: NeMo options[inputfile...] \n ");
+	fprintf (stream, "Usage: Kavosh -i <INPUT> -s <SIZE> [options] \n ");
     fprintf (stream,
 		 "\t-h	--help\t\t\tDisplay this usage information. \n"
 		 "\t-i	--input filename\tInput filename.\n"
@@ -58,7 +63,7 @@ void print_usage (FILE * stream, int exit_code)
 ****************************************************************/
 
 bool ReadData(const char *path) {
-	register int i, j;
+	int i, j;
 	int graphSize;
 	FILE * inFile = fopen(path, "r");
 	
@@ -67,17 +72,43 @@ bool ReadData(const char *path) {
 		return false;
 	}
 	
-	if (!feof(inFile))
-		fscanf(inFile, "%d\n", &graphSize);	
-	
+	// The first line must hold the vertex count. Validate it before allocating:
+	// a truncated or corrupt file otherwise yields a garbage size and a
+	// std::bad_alloc far away from the actual cause.
+	graphSize = 0;
+	if (fscanf(inFile, "%d", &graphSize) != 1) {
+		fprintf(stderr, "Error: %s does not start with a vertex count.\n", path);
+		fclose(inFile);
+		return false;
+	}
+	if (graphSize <= 0 || graphSize > MAX_VERTICES) {
+		fprintf(stderr, "Error: invalid vertex count %d in %s (expected 1..%d).\n",
+		        graphSize, path, MAX_VERTICES);
+		fclose(inFile);
+		return false;
+	}
+	if (subgraphSize > graphSize) {
+		fprintf(stderr, "Error: motif size %d exceeds the %d vertices in %s.\n",
+		        subgraphSize, graphSize, path);
+		fclose(inFile);
+		return false;
+	}
+
 	Visited = new bool[graphSize+1];
 	for(i = 1; i <= graphSize; i++)
 		Visited[i] = false;
-	
-	
+
+
 	g = new Graph(graphSize, subgraphSize);
-	while (!feof(inFile)) {
-		fscanf(inFile, "%d %d\n", &i, &j);
+	long line = 1;
+	while (fscanf(inFile, "%d %d", &i, &j) == 2) {
+		++line;
+		if (i < 1 || i > graphSize || j < 1 || j > graphSize) {
+			fprintf(stderr, "Error: edge (%d, %d) on line %ld of %s is out of "
+			        "range 1..%d.\n", i, j, line, path, graphSize);
+			fclose(inFile);
+			return false;
+		}
 		if(i == j) continue;
 		g->addEdge(i, j);
 	}
@@ -104,8 +135,8 @@ bool ReadData(const char *path) {
 ***************************************************************/
 
 void initChildSet(int root, int level) {
-	register int *N;
-	register int i, j;
+	int *N;
+	int i, j;
 	const int *parents = subgraph[level-1];
 		
 	childSet[level][0] = 0;
@@ -126,7 +157,7 @@ void initChildSet(int root, int level) {
 ****************************************************************************************/
 
 void Explore(vertex root, int level, int reminder) {
-	register int i, j, k; // k is the number of selected nodes in the current level.
+	int i, j, k; // k is the number of selected nodes in the current level.
 
 #ifdef Debug
 	printf("************************************\n");
@@ -255,7 +286,7 @@ void NEG( int n, int k, int root, int level, int reminder, int m) {
  * This function enumerates the subgraphs related to each vertex of inpur network. *
 ***********************************************************************************/
 void Enumerate() {
-	register int v;
+	int v;
 
 	for (v = 1; v <= g->Size(); v++)
 	{
@@ -279,7 +310,7 @@ int main(int argc, char *argv[]) {
 	double random_time , main_time;
 	clock_t start_random_time, end_random_time;
 
-	register int i, j;
+	int i, j;
 	long long subgraphCounterMain;
 	generator gen;
   int next_option;
@@ -298,6 +329,7 @@ int main(int argc, char *argv[]) {
 
     int verbose = 0;
     strcpy(output_directory, "result");
+    input_filename[0] = 0;
 
     program_name = argv[0];
     do {
@@ -335,7 +367,7 @@ int main(int argc, char *argv[]) {
     } while (next_option != -1);
 
 
-	if (input_filename == NULL) {
+	if (input_filename[0] == 0) {
 		fprintf(stderr, "Input Argument Error: Please specify an input filename using \"-i <FILE NAME>\".\n");
         print_usage (stderr, -1);
 	}
@@ -354,7 +386,7 @@ int main(int argc, char *argv[]) {
 	printf("Input Graph: %s\n", input_filename);
 		
 	if (!ReadData(input_filename))
-		return 0;
+		return 1;
 	
     g->setPath(output_directory);
 
@@ -391,7 +423,6 @@ int main(int argc, char *argv[]) {
 		//total_random_time += random_time;
 	}
 	
-printf("Avg. RAndom = %lld\n", (long long)((float)boz/num_random_graphs));
 	if (0 < num_random_graphs)
 		g->calculateZSCORE(num_random_graphs, subgraphCounterMain, output_directory);
 		

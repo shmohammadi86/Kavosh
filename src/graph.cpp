@@ -1,3 +1,5 @@
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "graph.h"
 
 graph canon[MAXN * MAXM];
@@ -16,7 +18,7 @@ double * C_rand;
 double * mean;
 double * var;
 double* Score;
-long * ID;
+unsigned long long * ID;
 int idxID;
 int head;
 double enumerated_class;
@@ -35,7 +37,7 @@ bool sortCmp(int i, int j) {
 ****************************************************************/
 
 Graph::Graph(const int n, const int k) {
-	register int i, j;
+	int i, j;
 	subgraphSize = k;
 	T = new tree(k);
 	M = ((subgraphSize + WORDSIZE - 1) / WORDSIZE);
@@ -99,13 +101,14 @@ Graph::~Graph() {
 
 void Graph::setPath(char *path) { 
     char file[256];
+    mkdir(path, 0755);
     sprintf(file, "%s/adjMatrix.txt", path);
     printf("Opening %s ...\n", file); 
     fflush(stdout);
 	am = fopen(file, "w+");
     if(!am) {
         printf("Can't open %s\n", path);
-        sprintf(file, "result/adjMatrix.txt", path);
+        snprintf(file, sizeof(file), "result/adjMatrix.txt");
         printf("Writing to %s instead ...\n", file); 
     	am = fopen(file, "w+");
         if (!am) {
@@ -120,7 +123,7 @@ void Graph::setPath(char *path) {
 ****************************************************************/
 
 void Graph::Print() {
-	register int i, j;
+	int i, j;
 	
 	fflush(stdout);
 	for(i = 1; i <= nV; i++) {
@@ -230,7 +233,7 @@ int Graph::get_vertex() {
 
 
 void Graph::Finalize() {
-	register int i, j, max = 0;
+	int i, j, max = 0;
 	vector<int>::iterator it;
 	vector<int> degs;
 	
@@ -287,7 +290,7 @@ void Graph::Finalize() {
 ****************************************************************/
 
 void Graph::Classify(vertex **subgraph, int level) {
-	register int i = 0, j, l, k;
+	int i = 0, j, l, k;
     set *gv;
 	int tempSubgraph[subgraphSize];
 	
@@ -378,14 +381,14 @@ void Graph::AllocateCounter() {
 	var = new double[class_num];
 	Score = new double[class_num];
 	
-	register int i;
+	int i;
 	for(i = 0; i < class_num; i++) {
 		mean[i] = 0;
 		var[i] = 0;
 	}
 	
 	idxID = 0;
-	ID = new long[class_num];
+	ID = new unsigned long long[class_num]();
 }
 
 /****************************************************************
@@ -411,7 +414,7 @@ void Graph::DFS(Node * cur) {
 ****************************************************************/
 
 void Graph::print_adjMatrix(char * str) {
-	register int i, j;
+	int i, j;
 	int l = 0;
 	int index = 0;
 	int maxpow = subgraphSize * subgraphSize -1;
@@ -427,12 +430,12 @@ void Graph::print_adjMatrix(char * str) {
 				index = i*(subgraphSize)+(j-l);
 				fprintf(am, "%d", str[index]);
 				if (str[index] == 1)
-					ID[idxID] += (long) (pow(2, (maxpow - (i*subgraphSize+j))));
+					ID[idxID] |= (1ULL << (maxpow - (i*subgraphSize+j)));
 			}
 		}
 		fprintf(am,"\n");
 	}
-	fprintf(am,"ID: %d", ID[idxID]);
+	fprintf(am,"ID: %llu", ID[idxID]);
 	fprintf(am,"\n\n");
 	idxID++;
 }
@@ -465,7 +468,7 @@ void Graph::DFSmain(Node * cur, char * str, int lev) {
 
 void Graph::Extract() {
 	
-	register int i, j;
+	int i, j;
 	int class_num = T->get_leafnum();
 	char * adj_str = new char[subgraphSize*(subgraphSize-1)];
 	Node * current = T->return_root();
@@ -512,7 +515,7 @@ void Graph::calculateZSCORE(int RAND, int subgraphCounter, char *path) {
 	cm = fopen(file, "w+");
     if(!cm) {
         printf("Can't open %s\n", path);
-        sprintf(file, "result/ZScore.txt", path);
+        snprintf(file, sizeof(file), "result/ZScore.txt");
         printf("Writing to %s instead ...\n", file); 
     	cm = fopen(file, "w+");
         if (!cm) {
@@ -525,9 +528,9 @@ void Graph::calculateZSCORE(int RAND, int subgraphCounter, char *path) {
 	fprintf(cm, "ID\t\tNUM IN REAL \t\t MEAN IN RANDOM \t VAR IN RANDOM \t\t ZSCORE\n");
 	for (i = 0; i < T->get_leafnum(); i++) {
 		if (var[i] != 0) 
-			fprintf(cm, "%d\t\t %f% \t\t %f% \t\t %f \t\t %f\n", ID[i], C_main[i+1]/subgraphCounter*100, mean[i]/subgraphCounter*100, var[i], Score[i]);
+			fprintf(cm, "%llu\t\t %f%% \t\t %f%% \t\t %f \t\t %f\n", ID[i], C_main[i+1]/subgraphCounter*100, mean[i]/subgraphCounter*100, var[i], Score[i]);
 		if (var[i] == 0) 
-			fprintf(cm, "**%d\t\t %f% \t\t %f% \t\t %f \t\t %f \n", ID[i], C_main[i+1]/subgraphCounter*100, mean[i]/subgraphCounter*100, Score[i], double((C_main[i+1] - mean[i])));
+			fprintf(cm, "**%llu\t\t %f%% \t\t %f%% \t\t %f \t\t %f \n", ID[i], C_main[i+1]/subgraphCounter*100, mean[i]/subgraphCounter*100, Score[i], double((C_main[i+1] - mean[i])));
 	}
 
 	fclose (cm);

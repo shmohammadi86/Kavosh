@@ -1,0 +1,37 @@
+name: build
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / ${{ matrix.cxx }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            cxx: g++
+          - os: ubuntu-latest
+            cxx: clang++
+          - os: macos-latest
+            cxx: clang++
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: make CXX=${{ matrix.cxx }}
+
+      - name: Smoke test
+        run: make check CXX=${{ matrix.cxx }}
+
+      - name: Reject malformed input cleanly
+        run: |
+          printf 'not-a-number\n' > bad.txt
+          if ./Kavosh -i bad.txt -s 3 -o result; then
+            echo "expected a non-zero exit for malformed input"; exit 1
+          fi

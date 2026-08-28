@@ -21,7 +21,7 @@ int generator::binarySearch(int *E, int v, int w, int l, int h) {
 }
 
 void generator::genRandGraph_Edge(Graph * g) {
-	register int i, j;
+	int i, j;
 	int len = g->Size();
 	int p, q, a, b, c, d, c_ind, d_ind;
 	
